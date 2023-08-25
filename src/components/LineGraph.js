@@ -1,26 +1,41 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+import ReactApexChart from "react-apexcharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-const LineGraph = () => {
-  //   const [worldData, setWorldData] = useState({});
+function LineGraph() {
+  const [worldData, setWorldData] = useState({});
   const [countriesData, setCountriesData] = useState([]);
-  //   const [graphData, setGraphData] = useState({});
+  const [graphData, setGraphData] = useState({});
 
   useEffect(() => {
-    // fetch("https://disease.sh/v3/covid-19/all")
-    //   .then((response) => response.json())
-    //   .then((data) => setWorldData(data));
+    // Fetch data from APIs
+    async function fetchData() {
+      // Fetch worldwide COVID-19 data
+      const worldResponse = await axios.get(
+        "https://disease.sh/v3/covid-19/all"
+      );
+      setWorldData(worldResponse.data);
 
-    fetch("https://disease.sh/v3/covid-19/countries")
-      .then((response) => response.json())
-      .then((data) => setCountriesData(data));
+      // Fetch COVID-19 data for all countries
+      const countriesResponse = await axios.get(
+        "https://disease.sh/v3/covid-19/countries"
+      );
+      setCountriesData(countriesResponse.data);
 
-    // fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=all")
-    //   .then((response) => response.json())
-    //   .then((data) => setGraphData(data));
+      // Fetch historical COVID-19 data for all cases, deaths, and recovered
+      const graphResponse = await axios.get(
+        "https://disease.sh/v3/covid-19/historical/all?lastdays=all"
+      );
+      console.log(graphResponse);
+      setGraphData(graphResponse.data);
+    }
+
+    fetchData();
   }, []);
 
+  // Create markers for each country on the map
   const countryMarkers = countriesData.map((country) => (
     <Marker
       key={country.country}
@@ -37,50 +52,64 @@ const LineGraph = () => {
     </Marker>
   ));
 
-  //   const graphOptions = {
-  //     scales: {
-  //       x: {
-  //         type: "time",
-  //         time: {
-  //           unit: "day",
-  //         },
-  //       },
-  //       y: {
-  //         beginAtZero: true,
-  //       },
-  //     },
-  //   };
+  // Configuration options for the line graph
+  const graphOptions = {
+    chart: {
+      id: "cases-chart",
+    },
+    xaxis: {
+      categories: Object.keys(graphData.cases || {}),
+    },
+  };
 
-  //   const graphDataset = {
-  //     labels: Object.keys(graphData.cases || {}),
-  //     datasets: [
-  //       {
-  //         label: "Cases",
-  //         data: Object.values(graphData.cases || {}),
-  //         fill: false,
-  //         borderColor: "blue",
-  //       },
-  //     ],
-  //   };
+  // Data series for the line graph
+  const graphSeries = [
+    {
+      name: "Cases",
+      data: Object.values(graphData.cases || {}),
+    },
+    {
+      name: "deaths",
+      data: Object.values(graphData.deaths || {}),
+    },
+    {
+      name: "recovered",
+      data: Object.values(graphData.recovered || {}),
+    },
+  ];
 
   return (
-    <div>
-      <h1>COVID-19 LineGraph</h1>
-      {/* <Line data={graphDataset} /> */}
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        style={{ height: "500px", width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">
-          OpenStreetMap</a> contributors'
+    <div className="App">
+      <h1>COVID-19 Dashboard</h1>
+      <div>
+        <h2>Worldwide Data</h2>
+        <p>Total Cases: {worldData.cases}</p>
+        <p>Total Recovered: {worldData.recovered}</p>
+        <p>Total Deaths: {worldData.deaths}</p>
+      </div>
+      <div>
+        <h2>Map</h2>
+        <MapContainer
+          center={[20, 0]}
+          zoom={2}
+          style={{ height: "400px", width: "100%" }}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {countryMarkers}
+        </MapContainer>
+      </div>
+      <br />
+      <div>
+        <h2>Case Fluctuations</h2>
+        <ReactApexChart
+          options={graphOptions}
+          series={graphSeries}
+          type="line"
+          height={300}
         />
-        {countryMarkers}
-      </MapContainer>
+      </div>
     </div>
   );
-};
+}
 
 export default LineGraph;
