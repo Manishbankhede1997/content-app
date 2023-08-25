@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Line } from "react-chartjs-2";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
