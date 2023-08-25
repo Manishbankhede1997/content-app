@@ -1,44 +1,87 @@
-// import React, { useEffect, useState } from "react";
-// import { Chart } from "chart.js";
-// import { Line } from "react-chartjs-2";
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
-// function LineGraph() {
-//   const [graphData, setGraphData] = useState({});
+const LineGraph = () => {
+  //   const [worldData, setWorldData] = useState({});
+  const [countriesData, setCountriesData] = useState([]);
+  //   const [graphData, setGraphData] = useState({});
 
-//   useEffect(() => {
-//     async function fetchData() {
-//       try {
-//         const response = await fetch(
-//           "https://disease.sh/v3/covid-19/historical/all?lastdays=all"
-//         );
-//         const result = await response.json();
-//         const casesData = result.cases;
+  useEffect(() => {
+    // fetch("https://disease.sh/v3/covid-19/all")
+    //   .then((response) => response.json())
+    //   .then((data) => setWorldData(data));
 
-//         const chartData = {
-//           labels: Object.keys(casesData),
-//           datasets: [
-//             {
-//               label: "Cases",
-//               data: Object.values(casesData),
-//             },
-//           ],
-//         };
+    fetch("https://disease.sh/v3/covid-19/countries")
+      .then((response) => response.json())
+      .then((data) => setCountriesData(data));
 
-//         setGraphData(chartData);
-//         console.log("ChartData:", chartData); // Log the chart data here
-//       } catch (error) {
-//         console.error("Error fetching data:", error);
-//       }
-//     }
-//     fetchData();
-//   }, []);
+    // fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=all")
+    //   .then((response) => response.json())
+    //   .then((data) => setGraphData(data));
+  }, []);
 
-//   return (
-//     <div>
-//       <h2 className="text-xl font-semibold mb-2">Cases Fluctuations</h2>
-//       <Line data={graphData} />
-//     </div>
-//   );
-// }
+  const countryMarkers = countriesData.map((country) => (
+    <Marker
+      key={country.country}
+      position={[country.countryInfo.lat, country.countryInfo.long]}
+    >
+      <Popup>
+        <div>
+          <p>{country.country}</p>
+          <p>Active Cases: {country.active}</p>
+          <p>Recovered Cases: {country.recovered}</p>
+          <p>Deaths: {country.deaths}</p>
+        </div>
+      </Popup>
+    </Marker>
+  ));
 
-// export default LineGraph;
+  //   const graphOptions = {
+  //     scales: {
+  //       x: {
+  //         type: "time",
+  //         time: {
+  //           unit: "day",
+  //         },
+  //       },
+  //       y: {
+  //         beginAtZero: true,
+  //       },
+  //     },
+  //   };
+
+  //   const graphDataset = {
+  //     labels: Object.keys(graphData.cases || {}),
+  //     datasets: [
+  //       {
+  //         label: "Cases",
+  //         data: Object.values(graphData.cases || {}),
+  //         fill: false,
+  //         borderColor: "blue",
+  //       },
+  //     ],
+  //   };
+
+  return (
+    <div>
+      <h1>COVID-19 LineGraph</h1>
+      {/* <Line data={graphDataset} /> */}
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        style={{ height: "500px", width: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">
+          OpenStreetMap</a> contributors'
+        />
+        {countryMarkers}
+      </MapContainer>
+    </div>
+  );
+};
+
+export default LineGraph;
