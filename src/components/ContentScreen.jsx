@@ -19,10 +19,9 @@ function ContentScreen(props) {
 
     // Check if the content fields are filled and the status is selected as active
     if (
-      (contentData.firstName.length > 0 &&
-        contentData.lastName.length > 0 &&
-        contentData.isActive === true) ||
-      contentData.isActive === false
+      contentData.firstName.length > 0 &&
+      contentData.lastName.length > 0 &&
+      contentData.isActive === true
     ) {
       // Dispatch the "addContent" action with the contentData
       dispatch(addContent(contentData));
